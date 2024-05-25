@@ -255,3 +255,509 @@ COMMIT;
 
 ## RESTfull сервіс для управління даними
 
+Цей RESTfull сервіс розроблений із застосуванням Spring Framework, який забезпечує потужну підтримку для створення веб-додатків та сервісів. Основними компонентами є:
+
+  Spring Boot - спрощує конфігурацію та розгортання додатку, забезпечуючи вбудовану підтримку серверів застосунків.
+  Spring Data JPA - використовується для взаємодії з базами даних через Java Persistence API (JPA). Він дозволяє легко створювати репозиторії для роботи з даними, автоматизуючи більшість CRUD операцій, що полегшує роботу з базою даних.
+
+## Entity
+
+### Project
+
+```Java
+package db.lab6.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+@Entity
+@Table(name = "project")
+@Data
+public class Project {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(nullable = false)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String name;
+
+    @Column(nullable = false)
+    private String description;
+}
+```
+### User
+
+```Java
+package db.lab6.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+@Entity
+@Table(name = "users")
+@Data
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(nullable = false)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(nullable = false, unique = true)
+    private String nickname;
+
+    @Column(nullable = false)
+    private String password;
+
+    @ManyToOne
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
+}
+```
+
+### Task
+
+```Java
+package db.lab6.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+@Entity
+@Table(name = "task")
+@Data
+public class Task {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(nullable = false)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String name;
+
+    @Column(nullable = false)
+    private String description;
+
+    @Column(nullable = true)
+    private String isCompleted;
+
+    @ManyToOne
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
+}
+```
+
+## DTO
+
+### ProjectDTO
+
+```Java
+package db.lab6.dto;
+
+import lombok.Data;
+
+@Data
+public class ProjectDTO {
+    private String name;
+    private String description;
+}
+```
+
+### UserDTO
+
+```Java
+package db.lab6.dto;
+
+import lombok.Data;
+
+@Data
+public class UserDTO {
+    private String email;
+    private String nickname;
+    private String password;
+    private Long projectId;
+}
+```
+
+### TaskDTO
+
+```Java
+package db.lab6.dto;
+
+import lombok.Data;
+
+@Data
+public class TaskDTO {
+    private String name;
+    private String description;
+    private String isCompleted;
+    private Long projectId;
+}
+```
+
+## Controller
+
+### ProjectController
+
+```Java
+package db.lab6.controller;
+
+import db.lab6.dto.ProjectDTO;
+import db.lab6.entity.Project;
+import db.lab6.service.ProjectService;
+import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@AllArgsConstructor
+@RequestMapping("/project")
+public class ProjectController {
+    private ProjectService projectService;
+
+    @PostMapping("/add")
+    public Project addProject(@RequestBody ProjectDTO projectDTO){
+        Project project = projectService.addProject(projectDTO);
+        return project;
+    }
+    @GetMapping("/get/{id}")
+    public Project getProjectById(@PathVariable Long id){
+        Project project = projectService.getProjectById(id);
+        return project;
+    }
+    @GetMapping("/get/all")
+    public List<Project> getAllProjects(){
+        return projectService.getAllProjects();
+    }
+    @PutMapping("/update/{id}")
+    public Project updateProject(@PathVariable Long id, @RequestBody ProjectDTO projectDTO){
+        Project project = projectService.updateProject(id, projectDTO);
+        return project;
+    }
+    @DeleteMapping("/delete/{id}")
+    public String deleteProject(@PathVariable Long id){
+        projectService.deleteProject(id);
+        return "Project deleted";
+    }
+}
+```
+
+### UserController
+
+```Java
+package db.lab6.controller;
+
+import db.lab6.dto.UserDTO;
+import db.lab6.entity.User;
+import db.lab6.service.UserService;
+import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@AllArgsConstructor
+@RequestMapping("/user")
+public class UserController {
+    private UserService userService;
+
+    @PostMapping("/add")
+    public User addUser(@RequestBody UserDTO userDTO){
+        User user = userService.addUser(userDTO);
+        return user;
+    }
+    @GetMapping("/get/{id}")
+    public User getUserById(@PathVariable Long id){
+        User user = userService.getUserById(id);
+        return user;
+    }
+    @GetMapping("/get/all")
+    public List<User> getAllUsers(){
+        return userService.getAllUsers();
+    }
+    @PutMapping("/update/{id}")
+    public User updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO){
+        User user = userService.updateUser(id, userDTO);
+        return user;
+    }
+    @DeleteMapping("/delete/{id}")
+    public String deleteUser(@PathVariable Long id){
+        userService.deleteUser(id);
+        return "User deleted";
+    }
+}
+```
+
+### TaskController
+
+```Java
+package db.lab6.controller;
+
+import db.lab6.dto.TaskDTO;
+import db.lab6.entity.Task;
+import db.lab6.service.TaskService;
+import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@AllArgsConstructor
+@RequestMapping("/task")
+public class TaskController {
+    private TaskService taskService;
+
+    @PostMapping("/add")
+    public Task addTask(@RequestBody TaskDTO taskDTO) {
+        Task task = taskService.addTask(taskDTO);
+        return task;
+    }
+
+    @GetMapping("/get/{id}")
+    public Task getTaskById(@PathVariable Long id) {
+        Task task = taskService.getTaskById(id);
+        return task;
+    }
+
+    @GetMapping("/get/all")
+    public List<Task> getAllTasks() {
+        return taskService.getAllTasks();
+    }
+
+    @PutMapping("/update/{id}")
+    public Task updateTask(@PathVariable Long id, @RequestBody TaskDTO taskDTO) {
+        Task task = taskService.updateTask(id, taskDTO);
+        return task;
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public String deleteTask(@PathVariable Long id) {
+        taskService.deleteTask(id);
+        return "Task deleted";
+    }
+}
+```
+
+## Service
+
+### ProjectService
+
+```Java
+package db.lab6.service;
+
+import db.lab6.dto.ProjectDTO;
+import db.lab6.entity.Project;
+import db.lab6.repository.ProjectRepository;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@AllArgsConstructor
+public class ProjectService {
+    private ProjectRepository projectRepository;
+
+    public Project addProject(ProjectDTO projectDTO) {
+        Project project = new Project();
+        project.setName(projectDTO.getName());
+        project.setDescription(projectDTO.getDescription());
+        return projectRepository.save(project);
+    }
+
+    public Project getProjectById(Long id) {
+        return projectRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Project not found"));
+    }
+
+    public List<Project> getAllProjects() {
+        return projectRepository.findAll();
+    }
+
+    public Project updateProject(Long id, ProjectDTO projectDTO) {
+        Project project = projectRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Project not found"));
+        project.setName(projectDTO.getName());
+        project.setDescription(projectDTO.getDescription());
+        return projectRepository.save(project);
+    }
+    public void deleteProject(Long id) {
+        if (projectRepository.existsById(id)) {
+            projectRepository.deleteById(id);
+        } else {
+            throw new IllegalArgumentException("Project not found");
+        }
+    }
+}
+```
+
+### UserService
+
+```Java
+package db.lab6.service;
+
+import db.lab6.dto.UserDTO;
+import db.lab6.entity.User;
+import db.lab6.repository.ProjectRepository;
+import db.lab6.repository.UserRepository;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@AllArgsConstructor
+public class UserService {
+    private UserRepository userRepository;
+    private ProjectRepository projectRepository;
+
+    public User addUser(UserDTO userDTO) {
+        User user = new User();
+        user.setEmail(userDTO.getEmail());
+        user.setNickname(userDTO.getNickname());
+        user.setPassword(userDTO.getPassword());
+        user.setProject(projectRepository.findById(userDTO.getProjectId()).orElseThrow(() -> new IllegalArgumentException("Project not found")));
+        return userRepository.save(user);
+    }
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
+    }
+
+    public List<User> getAllUsers(){
+        return userRepository.findAll();
+    }
+
+    public User updateUser(Long id, UserDTO userDTO) {
+        User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.setEmail(userDTO.getEmail());
+        user.setNickname(userDTO.getNickname());
+        user.setPassword(userDTO.getPassword());
+        user.setProject(projectRepository.findById(userDTO.getProjectId()).orElseThrow(() -> new IllegalArgumentException("Project not found")));
+        return userRepository.save(user);
+    }
+
+    public void deleteUser(Long id) {
+        if (userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+        } else {
+            throw new IllegalArgumentException("User not found");
+        }
+    }
+}
+```
+
+### TaskService
+
+```Java
+package db.lab6.service;
+
+import db.lab6.dto.TaskDTO;
+import db.lab6.entity.Task;
+import db.lab6.repository.ProjectRepository;
+import db.lab6.repository.TaskRepository;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@AllArgsConstructor
+public class TaskService {
+    private TaskRepository taskRepository;
+    private ProjectRepository projectRepository;
+
+    public Task addTask(TaskDTO taskDTO) {
+        Task task = new Task();
+        task.setName(taskDTO.getName());
+        task.setDescription(taskDTO.getDescription());
+        task.setIsCompleted(taskDTO.getIsCompleted());
+        task.setProject(projectRepository.findById(taskDTO.getProjectId()).orElseThrow(() -> new IllegalArgumentException("Project not found")));
+        return taskRepository.save(task);
+    }
+    public Task getTaskById(Long id) {
+        return taskRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Task not found"));
+    }
+
+    public List<Task> getAllTasks() {
+        return taskRepository.findAll();
+    }
+
+    public Task updateTask(Long id, TaskDTO taskDTO) {
+        Task task = taskRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Task not found"));
+        task.setName(taskDTO.getName());
+        task.setDescription(taskDTO.getDescription());
+        task.setIsCompleted(taskDTO.getIsCompleted());
+        task.setProject(projectRepository.findById(taskDTO.getProjectId()).orElseThrow(() -> new IllegalArgumentException("Project not found")));
+        return taskRepository.save(task);
+    }
+
+    public void deleteTask(Long id) {
+        if (taskRepository.existsById(id)){
+            taskRepository.deleteById(id);
+        } else {
+            throw new IllegalArgumentException("Task not found");
+        }
+    }
+}
+```
+
+## Repository
+
+### ProjectRepository
+
+```Java
+package db.lab6.repository;
+
+import db.lab6.entity.Project;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ProjectRepository extends JpaRepository<Project, Long> {
+
+}
+```
+
+### UserRepository
+
+```Java
+package db.lab6.repository;
+
+import db.lab6.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UserRepository extends JpaRepository<User, Long> {
+
+}
+```
+
+### TaskRepository
+
+```Java
+package db.lab6.repository;
+
+import db.lab6.entity.Task;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface TaskRepository extends JpaRepository<Task, Long> {
+
+}
+```
+
+## SpringMainClass
+
+```Java
+package db.lab6;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class Lab6Application {
+
+	public static void main(String[] args) {
+		SpringApplication.run(Lab6Application.class, args);
+	}
+
+}
+```
